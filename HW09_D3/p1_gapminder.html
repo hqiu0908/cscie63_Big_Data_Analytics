@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>The Wealth & Health of Nations (2011)</title>
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="../d3/d3.js"></script>
+    <style type="text/css">
+        #chart {
+            margin-left: -40px;
+            height: 506px;
+        }
+
+        text {
+            font: 10px sans-serif;
+        }
+
+        .dot {
+            stroke: #000;
+        }
+
+        .axis path, .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 160px;
+            height: 50px;
+            padding: 2px;
+            font: 11px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .legend {
+            padding: 5px;
+            font: 10px sans-serif;
+            box-shadow: 2px 2px 1px #888;
+        }
+    </style>
+</head>
+
+<h1>The Wealth & Health of Nations (2011)</h1>
+
+<p id="chart"></p>
+
+<body>
+<script type="text/javascript">
+    // Various accessors that specify the five dimensions of data to visualize.
+    function x(d) { return d.income; }
+    function y(d) { return d.lifeExpectancy; }
+    function radius(d) { return d.population; }
+    function color(d) { return d.region; }
+    function key(d) { return d.country; }
+
+    // Chart dimensions.
+    var margin = {top: 19.5, right: 19.5, bottom: 19.5, left: 70},
+            width = 960 - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+    // Various scales. These domains make assumptions of data, naturally.
+    var xScale = d3.scale.log().domain([300, 1e5]).range([0, width]),
+            yScale = d3.scale.linear().domain([10, 85]).range([height, 0]),
+            radiusScale = d3.scale.sqrt().domain([0, 5e8]).range([0, 40]),
+            colorScale = d3.scale.category10();
+
+    // The x & y axes.
+    var xAxis = d3.svg.axis().orient("bottom").scale(xScale).ticks(12, d3.format(",d")),
+            yAxis = d3.svg.axis().scale(yScale).orient("left");
+
+    // Create the SVG container and set the origin.
+    var svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Add the x-axis.
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    // Add the y-axis.
+    svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+    // Add an x-axis label.
+    svg.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "end")
+            .attr("x", width)
+            .attr("y", height - 6)
+            .text("Income per person, $/year (GDP/capita)");
+
+    // Add a y-axis label.
+    svg.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "end")
+            .attr("y", 6)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("Life expectancy (years)");
+
+    // Define the div for the tooltip
+    var div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+    // Load the data.
+    d3.csv("gapminder.csv", function(nations) {
+
+        // Add a dot per nation and set the colors.
+        var dot = svg.append("g")
+                .attr("class", "dots")
+                .selectAll("circle")
+                .data(interpolateData())
+                .enter()
+                .append("g");
+
+        /*
+        dot.append("text")
+                .attr("text-anchor", "middle")
+                .attr("x", function (d) {
+                    return xScale(x(d));
+                })
+                .attr("y", function (d) {
+                    return yScale(y(d)) + radiusScale(radius(d)) / 2;
+                })
+                .
+                attr("fill", "#3f3f3f")
+                .text(function (d) {
+                    return d.country;
+                }).sort();
+        */
+
+        dot.append("circle")
+                .attr("class", "dot")
+                .style("fill", function (d) {
+                    return colorScale(color(d));
+                }).call(position).sort(order)
+            .on("mouseover", function(d) {
+                // d3.select(this).style("opacity", 0.5);
+                d3.select(this).style("fill", "#00ffff");
+
+                div.transition()
+                        .duration(200)
+                        .style("left", d3.select(this).attr("cx") + "px")
+                        .style("top", d3.select(this).attr("cy") + "px")
+                        .style("opacity", .9);
+                div.html(d.country + "<br/>" + "Region: " + d.region + "<br/>" +
+                        "Income: " + d.income + "<br/>" + "Life Expectancy: " + d.lifeExpectancy )
+            })
+            .on("mouseout", function(d) {
+                // d3.select(this).style("opacity", 1);
+                d3.select(this).style("fill", colorScale(color(d)));
+
+                div.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+            });
+
+        /*
+        dot.append("title")
+                .text(function (d) {
+                    return d.country;
+                });
+        */
+
+        function position(dot) {
+            dot.attr("cx", function (d) {
+                        return xScale(x(d));
+                    })
+                    .attr("cy", function (d) {
+                        return yScale(y(d));
+                    })
+                    .attr("r", function (d) {
+                        return radiusScale(radius(d));
+                    });
+        }
+
+        // Defines a sort order so that the smallest dots are drawn on top.
+        function order(a, b) {
+            return radius(b) - radius(a);
+        }
+
+        // Interpolates the dataset for the given (fractional) year.
+        function interpolateData() {
+            return nations.map(function (d) {
+                console.log(d);
+                return {
+                    country: d.country,
+                    region: d.region,
+                    population: d.population,
+                    income: d.income,
+                    lifeExpectancy: d.lifeExpectancy
+                };
+            });
+        }
+
+    });
+
+</script>
+</body>

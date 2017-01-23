@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<title>Predict the horsepower from displacement</title>
+<head>
+    <meta charset="utf-8">
+    <script type="text/javascript" src="../d3/d3.js"></script>
+    <style type="text/css">
+        #chart {
+            margin-left: -40px;
+            height: 506px;
+        }
+
+        text {
+            font: 10px sans-serif;
+        }
+
+        .dot {
+            stroke: #000;
+        }
+
+        .axis path, .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 100px;
+            height: 40px;
+            padding: 2px;
+            font: 11px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+
+<h1>Predict the horsepower from displacement</h1>
+
+<p id="chart"></p>
+
+<body>
+<script type="text/javascript">
+    // Various accessors that specify the five dimensions of data to visualize.
+    function x(d) { return d.displacement; }
+    function yOrig(d) { return d.horsepowerOrig; }
+    function yPredict(d) { return d.horsepowerPredict; }
+
+    // Chart dimensions.
+    var margin = {top: 19.5, right: 19.5, bottom: 19.5, left: 70},
+            width = 960 - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+    // Various scales. These domains make assumptions of data, naturally.
+    var xScale = d3.scale.linear().domain([0, 500]).range([0, width]),
+            yScale = d3.scale.linear().domain([0, 500]).range([height, 0]);
+
+    // The x & y axes.
+    var xAxis = d3.svg.axis().orient("bottom").scale(xScale).ticks(12, d3.format(",d")),
+            yAxis = d3.svg.axis().scale(yScale).ticks(12, d3.format(",d")).orient("left");
+
+    // Create the SVG container and set the origin.
+    var svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    // Add the x-axis.
+    svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+    // Add the y-axis.
+    svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis);
+
+    // Add an x-axis label.
+    svg.append("text")
+            .attr("class", "x label")
+            .attr("text-anchor", "end")
+            .attr("x", width)
+            .attr("y", height - 6)
+            .text("Displacement");
+
+    // Add a y-axis label.
+    svg.append("text")
+            .attr("class", "y label")
+            .attr("text-anchor", "end")
+            .attr("y", 6)
+            .attr("dy", ".75em")
+            .attr("transform", "rotate(-90)")
+            .text("Horsepower");
+
+    // Define the div for the tooltip
+    var div = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+    // Load the data.
+    d3.csv("Small_Car_Data.csv", function(error, data) {
+
+        data.forEach(function(d) {
+            d.displacement = +d.displacement;
+            d.horsepowerOrig = +d.horsepowerOrig;
+            d.horsepowerPredict = +d.horsepowerPredict;
+            console.log(d);
+        });
+
+        var dot = svg.append("g")
+                .attr("class", "dots")
+                .selectAll("circle")
+                .data(data)
+                .enter()
+                .append("g");
+
+        // Plot the original values
+        dot.append("circle")
+                .attr("class", "dot")
+                .style("fill", "#0000ff")
+                .call(positionOrig)
+                .on("mouseover", function(d) {
+                    d3.select(this).style("opacity", 0.5);
+
+                    div.transition()
+                            .duration(200)
+                            .style("left", d3.select(this).attr("cx") + "px")
+                            .style("top", d3.select(this).attr("cy") + "px")
+                            .style("opacity", .9);
+
+                    div.html("Displacement: " + d.displacement + "<br/>" +
+                             "Horsepower: " + d.horsepowerOrig)
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).style("opacity", 1);
+
+                    div.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                });
+
+        function positionOrig(dot) {
+            dot.attr("cx", function (d) {
+                        return xScale(x(d));
+                    })
+                    .attr("cy", function (d) {
+                        return yScale(yOrig(d));
+                    })
+                    .attr("r", 3);
+        }
+
+        // Plot the predict values
+        dot.append("circle")
+                .attr("class", "dot")
+                .style("fill", "#ff0000")
+                .call(positionPredict)
+                .on("mouseover", function(d) {
+                    d3.select(this).style("opacity", 0.5);
+
+                    div.transition()
+                            .duration(200)
+                            .style("left", d3.select(this).attr("cx") + "px")
+                            .style("top", d3.select(this).attr("cy") + "px")
+                            .style("opacity", .9);
+
+                    div.html("Displacement: " + d.displacement + "<br/>" +
+                            "Horsepower: " + d.horsepowerPredict)
+                })
+                .on("mouseout", function(d) {
+                    d3.select(this).style("opacity", 1);
+
+                    div.transition()
+                            .duration(500)
+                            .style("opacity", 0);
+                });
+
+        function positionPredict(dot) {
+            dot.attr("cx", function (d) {
+                        return xScale(x(d));
+                    })
+                    .attr("cy", function (d) {
+                        return yScale(yPredict(d));
+                    })
+                    .attr("r", 3);
+        }
+
+    });
+
+    // Draw the line
+    svg.append("line")
+            .attr("x1", xScale(90))
+            .attr("y1", yScale(45.134834686776657))
+            .attr("x2", xScale(360))
+            .attr("y2", yScale(180.53933874710663))
+            .attr("stroke-width", 2)
+            .attr("stroke", "green");
+
+</script>
+</body>

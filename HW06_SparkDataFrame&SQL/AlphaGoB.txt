@@ -1,0 +1,14 @@
+Google's Deepmind AI has done it again: it's beaten Go world champion Lee Sedol
+in the second of a five-match challenge. After forcing the 9-dan professional to
+resign in yesterday's test, today's four-and-a-half hour match went into
+overtime before the South Korean admitted defeat. AlphaGo now only needs one
+more win to become champion and claim the $1 million prize.
+
+Google's artificial intelligence shocked many when it beat a Go world champion
+for the first time. AlphaGo had already dispatched the European champion in an
+earlier test, but as an 18-time world champion and Go grandmaster, Lee poses a
+much tougher challenge. The Korean believed he would win the series 5-0, or 4-1
+at worst, but there's currently no stopping AlphaGo.
+
+"I'm quite speechless," said Lee in the post-match conference. "It was a clear
+loss on my part. From the beginning there was no moment I thought I was leading."

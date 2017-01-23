@@ -1,0 +1,12 @@
+{
+  "statements": [
+    {
+      "statement": "CREATE (matrix1:Movie { title : 'The Matrix', year : '1999-03-31' })\nCREATE (matrix2:Movie { title : 'The Matrix Reloaded', year : '2003-05-07' })\nCREATE (matrix3:Movie { title : 'The Matrix Revolutions', year : '2003-10-27' })\nCREATE (keanu:Actor { name:'Keanu Reeves' })\nCREATE (laurence:Actor { name:'Laurence Fishburne' })\nCREATE (carrieanne:Actor { name:'Carrie-Anne Moss' })\nCREATE (keanu)-[:ACTS_IN { role : 'Neo' }]->(matrix1)\nCREATE (keanu)-[:ACTS_IN { role : 'Neo' }]->(matrix2)\nCREATE (keanu)-[:ACTS_IN { role : 'Neo' }]->(matrix3)\nCREATE (laurence)-[:ACTS_IN { role : 'Morpheus' }]->(matrix1)\nCREATE (laurence)-[:ACTS_IN { role : 'Morpheus' }]->(matrix2)\nCREATE (laurence)-[:ACTS_IN { role : 'Morpheus' }]->(matrix3)\nCREATE (carrieanne)-[:ACTS_IN { role : 'Trinity' }]->(matrix1)\nCREATE (carrieanne)-[:ACTS_IN { role : 'Trinity' }]->(matrix2)\nCREATE (carrieanne)-[:ACTS_IN { role : 'Trinity' }]->(matrix3)",
+      "resultDataContents": [
+        "row",
+        "graph"
+      ],
+      "includeStats": true
+    }
+  ]
+}

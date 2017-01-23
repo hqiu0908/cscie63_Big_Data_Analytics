@@ -1,0 +1,41 @@
+CREATE TABLE SHAKE (freq INT, word STRING) ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t' STORED AS TEXTFILE;
+
+DESCRIBE SHAKE
+
+LOAD DATA INPATH "/user/cloudera/shakespeare_freq" INTO TABLE SHAKE
+
+SELECT * FROM SHAKE WHERE freq > 6000 ORDER BY freq DESC LIMIT 20
+
+DROP TABLE IF EXISTS MERGED
+
+CREATE TABLE MERGED (word STRING, shake_freq INT, bible_freq INT)
+
+DESCRIBE MERGED
+
+INSERT OVERWRITE TABLE MERGED SELECT COALESCE(s.word, k.word), s.freq, k.freq FROM SHAKE s FULL OUTER JOIN KINGJAMES k ON (s.word = k.word)
+
+SELECT * FROM MERGED LIMIT 10
+
+SELECT word, bible_freq FROM MERGED WHERE shake_freq IS NULL LIMIT 10
+
+SELECT word, bible_freq FROM MERGED WHERE shake_freq IS NULL ORDER BY bible_freq DESC LIMIT 10
+
+SELECT count(*) FROM MERGED WHERE shake_freq IS NULL
+
+SELECT word, shake_freq FROM MERGED WHERE bible_freq IS NULL LIMIT 10
+
+SELECT word, shake_freq FROM MERGED WHERE bible_freq IS NULL ORDER BY shake_freq DESC LIMIT 10
+
+SELECT count(*) FROM MERGED WHERE bible_freq IS NULL
+
+SELECT k.word AS word, k.freq as bible_freq FROM SHAKE s RIGHT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE s.word IS NULL LIMIT 10
+
+SELECT k.word AS word, k.freq as bible_freq FROM SHAKE s RIGHT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE s.word IS NULL ORDER BY freq DESC LIMIT 10
+
+SELECT count(*) FROM SHAKE s RIGHT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE s.word IS NULL
+
+SELECT s.word AS word, s.freq as shake_freq FROM SHAKE s LEFT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE k.word IS NULL ORDER BY word LIMIT 10
+
+SELECT s.word AS word, s.freq as shake_freq FROM SHAKE s LEFT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE k.word IS NULL ORDER BY freq DESC LIMIT 10
+
+SELECT count(*) FROM SHAKE s LEFT OUTER JOIN KINGJAMES k ON (s.word = k.word) WHERE k.word IS NULL
